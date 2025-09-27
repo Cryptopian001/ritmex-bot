@@ -12,6 +12,10 @@ interface StrategyOption {
   component: React.ComponentType<{ onExit: () => void }>;
 }
 
+interface AppProps {
+  strategy?: "trend" | "maker" | "offset-maker" | null;
+}
+
 const STRATEGIES: StrategyOption[] = [
   {
     id: "trend",
@@ -35,9 +39,14 @@ const STRATEGIES: StrategyOption[] = [
 
 const inputSupported = Boolean(process.stdin && (process.stdin as any).isTTY);
 
-export function App() {
+export function App({ strategy: initialStrategy }: AppProps = {}) {
   const [cursor, setCursor] = useState(0);
-  const [selected, setSelected] = useState<StrategyOption | null>(null);
+  const [selected, setSelected] = useState<StrategyOption | null>(() => {
+    if (initialStrategy) {
+      return STRATEGIES.find(s => s.id === initialStrategy) || null;
+    }
+    return null;
+  });
   const copyright = useMemo(() => loadCopyrightFragments(), []);
   const integrityOk = useMemo(() => verifyCopyrightIntegrity(), []);
 
