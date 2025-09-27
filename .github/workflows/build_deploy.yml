@@ -1,0 +1,46 @@
+name: Build and Publish Docker
+on:
+  push:
+    branches:
+      - '**'  # This matches all branches but excludes tags
+env:
+  ALIYUN_REGISTRY: registry.cn-hongkong.aliyuncs.com
+  ALIYUN_REPOSITORY: cryptopian/ritmex-bot
+  ALIYUN_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  ALIYUN_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine tag and build arg
+        id: meta
+        run: |
+          if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+            SAFE_BRANCH_NAME="${BRANCH_NAME//\//.}"
+            echo "IMAGE_TAG=$SAFE_BRANCH_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Not on a branch; cannot determine image tag." >&2
+            exit 1
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ALIYUN_REGISTRY/$ALIYUN_REPOSITORY:${{ steps.meta.outputs.image_tag }} .
+
+      - name: Login to Aliyun Docker Registry and push image
+        run: |
+          echo $ALIYUN_PASSWORD | docker login $ALIYUN_REGISTRY -u $ALIYUN_USERNAME --password-stdin
+          docker push $ALIYUN_REGISTRY/$ALIYUN_REPOSITORY:${{ steps.meta.outputs.image_tag }}
