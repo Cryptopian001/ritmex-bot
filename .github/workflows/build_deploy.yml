@@ -4,7 +4,7 @@ on:
     branches:
       - '**'  # This matches all branches but excludes tags
 env:
-  ALIYUN_REGISTRY: registry.cn-hongkong.aliyuncs.com
+  ALIYUN_REGISTRY: registry.ap-northeast-1.aliyuncs.com
   ALIYUN_REPOSITORY: cryptopian/ritmex-bot
   ALIYUN_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   ALIYUN_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
